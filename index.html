@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link type="image/x-icon" href="/assets/images/favicon.ico" rel="shortcut icon"/>
+    <link rel="stylesheet" href="/assets/bootstrap/bootstrap.v5.min.css">
+    <link rel="stylesheet" href="/assets/bootstrap/geonet.v7.css">
+    <title>GNS AfterShock Calculator</title>
+</head>
+<body>
+
+<div class="container">
+    <h2>AfterShock calculator for GNS Science use only</h2>
+
+    <div id="QuakeInfo" class="card">
+        <div class="card-header"> Enter a quake ID then select <strong><i>Load Quake</i></strong> to retrieve the quake parameters</div>
+        <div class="d-flex card-body">
+            <input  type="text" id="QuakeID" class="form-control input-small" value="2022p138188"  pattern="[0-9A-Za-z]{11}" />
+            <div class="p-1">
+                <button type="submit" id="loadQ" class="btn btn-sm btn-outline-info">Load Quake</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="Params" class="card mt-2">
+        <div class="card-header">Update any of the parameters below then click <strong><i>Calculate</i></strong></div>
+
+        <div class="card-body">
+        <div class="row mb-1 mt-1">
+            <label class="col-6 col-lg-2 text-end" for="mag">Magnitude</label >
+            <div class="col-auto col-lg-10">
+                <input class="form-control input-md change-event" type="text" id="mag"/>
+            </div>
+        </div>
+
+        <div class="row mb-1">
+            <label class="col-6 col-lg-2 text-end text-nowrap" for="quakeTime">Quake time</label >
+            <div class="col-auto col-lg-10">
+                <input class="form-control input-md change-event" type="datetime" id="quakeTime"/>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <label  class="col-6 col-lg-2 text-end text-nowrap" for="startTime">Start time</label>
+            <div class="col-auto col-lg-10">
+                <input class="form-control input-md change-event"  type="datetime" id="startTime" />
+            </div>
+        </div>
+
+        <div class="row mb-1">
+            <label class="col-6 col-lg-2 text-end text-nowrap" for="duration">Forecast length (days)</label>
+            <div class="col-auto">
+                <input class="form-control input-md change-event" type="number" id="duration" value="30"  min="1" max="730"  step="1"  />
+            </div>
+        </div>
+
+        <div class="d-flex mb-1">
+            <div class="p-2">
+                <label for="nz">NZ generic</label>
+                <input class="align-middle change-event" type="radio" id="nz" name="model" checked  rel="1" />
+            </div>
+
+            <div class="p-2">
+                <label for="sz">Subduction zone</label>
+                <input class="align-middle change-event" type="radio" id="sz" name="model" rel="1" />
+            </div>
+
+            <div class="p-2">
+                <label for="cm">Custom</label>
+                <input class="align-middle change-event" type="radio" id="cm" name="model" label="Custom" rel="1" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-auto  d-flex">
+                <label class="align-middle  p-1"  for="a">a</label>
+                <input class="form-control input-small change-event" type="number" min="-2" max="-0.1" step="0.01" id="a" value="-1.59" rel="1" disabled />
+            </div>
+
+            <div class="col-auto  d-flex">
+                <label class="align-middle  p-1"  for="b">b</label>
+                <input class="form-control input-small change-event" type="number" min="0.1" max="2" step="0.01" id="b" value="1.03" rel="1" disabled />
+            </div>
+
+            <div class="col-auto d-flex">
+                <label class="align-middle  p-1" for="c">c</label>
+                <input class="form-control input-small change-event" type="number" min="0.001"  max="0.1" step="0.001" id="c"  value="0.04" rel="1" disabled />
+            </div>
+
+            <div class="col-auto  d-flex">
+                <label class="align-middle p-1" for="p">p</label >
+                <input class="form-control input-small change-event" type="number"  min="0.5" max="2"  step="0.01" id="p"  value="1.07" rel="1" disabled />
+            </div>
+        </div>
+
+        <div class="m-2"></div>
+        <div class="row mb-1">
+            <label class="col-6 col-lg-2 mt-1 text-end text-nowrap" for="M1">Mag Range 1</label>
+            <div class="col-auto">
+                <input class="form-control input-small change-event" type="number"  min="1"   max="8" step="1"  id="M1" />
+            </div>
+        </div>
+        <div class="row mb-1">
+            <label class="col-6 col-lg-2  mt-1 text-end text-nowrap" for="M2">Mag Range 2</label>
+            <div class="col-auto">
+                <input class="form-control input-small change-event" type="number"  min="1" max="7"  step="1"  id="M2" />
+            </div>
+        </div>
+        <div class="row mb-1">
+            <label class="col-6 col-lg-2 mt-1 text-end text-nowrap" for="M3">Mag Range 3</label>
+            <div class="col-auto">
+                <input class="form-control input-small change-event" type="number" min="1" max="6" step="1" id="M3" />
+            </div>
+        </div>
+
+        <div class="p-2">
+            <button class="btn btn-sm btn-primary" type="submit" id="doAfters" disabled > Calculate</button>
+        </div>
+        </div>
+    </div>
+
+    <div class="table-responsive mt-2 card mt-2 border-0" id="results">
+        <div class="card-header border border-bottom-0">Calculation result</div>
+        <table class="table markdown-body">
+            <tbody>
+            <tr>
+                <th colspan="1" id="qID"></th>
+                <th colspan="3" id="Range3">Mag range 3</th>
+                <th colspan="3" id="Range2">Mag range 2</th>
+                <th colspan="3" id="Range1">Mag range 1</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="text-nowrap">Average number</td>
+                <td class="text-nowrap">Range *</td>
+                <td class="text-nowrap">Probability<br/> of 1 or more</td>
+                <td class="text-nowrap">Average number</td>
+                <td class="text-nowrap">Range *</td>
+                <td class="text-nowrap">Probability<br/> of 1 or more</td>
+                <td class="text-nowrap">Average number</td>
+                <td class="text-nowrap">Range *</td>
+                <td class="text-nowrap">Probability<br/> of 1 or more</td>
+            </tr>
+            <tr>
+                <td class="text-nowrap" id="within">within nn days</td>
+                <td id="M3R"></td>
+                <td id="M3A"></td>
+                <td id="M3P">%</td>
+                <td id="M2R"></td>
+                <td id="M2A"></td>
+                <td id="M2P">%</td>
+                <td id="M1R"></td>
+                <td id="M1A"></td>
+                <td id="M1P">%</td>
+            </tr>
+            </tbody>
+        </table>
+        <p id="info"></p>
+    </div>
+
+    <div class="m-2">
+        <button id="btnPrint" class="btn btn-sm btn-outline-secondary" type="submit">Print this page</button>
+    </div>
+</div>
+
+<script src="/assets/js/aftershock-min.js"></script>
+
+</body>
+</html>
