@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+
+<div id="demo" >
+
+<h2>AfterShock calculator for GNS Science use only</h2>
+<p>Enter a quakeID then select <i>Load Quake</i> to retrieve the quake parameters</p>
+<input type="text" id="QuakeID" value="2022p138188" pattern="[0-9A-Za-z]{11}"></input>
+<button type="button" id="loadQ" onclick="loadQuake(getQuake)">Load Quake</button>
+<p>Update any of the parameters below before hitting <i>Calculate</i></p>
+MAG<input type="text" id="mag" onchange="clearResults()"></input>
+Quake Time<input type="datetime" id="quakeTime" onchange="clearResults()"></input>
+</br>Start Time <input type="datetime" id="startTime" onchange="clearResults()"></input>
+forecast length <input type="number" id="duration" value="30" min="1" max="730" step="1" onchange="clearResults()"></input> days
+</br></br>NZ generic<input type="radio" id="nz" name="model"  label="NZ generic" checked onchange="clearResults(1)">
+</br>Subduction zone<input type="radio" id="sz" name="model" label="Subduction zone" onchange="clearResults(1)">
+</br>Custom<input type="radio" id="cm" name="model" label="Custom" onchange="clearResults(1)">
+</br>a<input type="number" min="-2" max="-0.1" step="0.01" id="a" value="-1.59" disabled onchange="clearResults(1)"></input>
+b<input type="number" min="0.1" max="2" step="0.01" id="b" value="1.03" disabled onchange="clearResults(1)"></input>
+</br>c<input type="number" min="0.001" max="0.1" step="0.001" id="c" value="0.04" disabled onchange="clearResults(1)"></input>
+p<input type="number" min="0.5" max="2" step="0.01" id="p" value="1.07" disabled onchange="clearResults(1)"></input>
+</br>
+
+
+</br>Mag min range 1 <input type="number" min="1" max="8" step="1" id="M1" onchange="clearResults()"></input>
+</br>Mag min range 2 <input type="number" min="1" max="7" step="1" id="M2" onchange="clearResults()"></input>
+</br>Mag min range 3 <input type="number" min="1" max="6" step="1" id="M3" onchange="clearResults()"></input>
+
+
+</br><button type="button" id="doAfters" disabled onclick="doCalc()">Calculate</button>
+<p></p>
+
+<table class="markdown-body">
+   <tbody><tr>
+        <td colspan="1" id="qID"></td>
+     <td colspan="3" id="Range3"><strong>Mag range 3</strong></td>
+        <td colspan="3" id="Range2"><strong>Mag range 2</strong></td>
+        <td colspan="3" id="Range1"><strong>Mag range 1</strong></td>
+   </tr>
+  <tr>
+        <td><strong> </strong></td>
+        <td><strong>Average number</strong></td>
+        <td><strong>Range *</strong></td>
+    <td><strong>Probability of 1 or more</strong></td>
+        <td><strong>Average number</strong></td>
+        <td><strong>Range *</strong></td>
+        <td><strong>Probability of 1 or more</strong></td>
+        <td><strong>Average number</strong></td>
+        <td><strong>Range *</strong></td>
+        <td><strong>Probability of 1 or more</strong></td>
+   </tr>
+<tr>
+    <td id="within"><strong>within nn days</strong></td>
+       <td id="M3R"></td>
+       <td id="M3A"></td>
+       <td id="M3P">%</td>
+       <td id="M2R"></td>
+       <td id="M2A"></td>
+       <td id="M2P">%</td>
+       <td id="M1R"></td>
+       <td id="M1A"></td>
+       <td id="M1P">%</td>
+    </tr>
+ </tbody></table>
+<p id="info">
+</p>
+<button onclick="window.print()">Print this page</button>
+</div>
+
+<script>
+
+    var m1,m2,m3,a,b,c,p;
+    var mag;
+
+
+function loadQuake(cFunction) {
+
+var str = document.getElementById("QuakeID").value;
+  var patt = new RegExp("[^0-9a-z]");
+  if (patt.test(str)==true){
+	alert("invalid QuakeID:"+str);
+	return;
+}
+
+  var QuakeURL = "https://api.geonet.org.nz/quake/" + document.getElementById("QuakeID").value;
+    document.getElementById("mag").value="";
+    document.getElementById("quakeTime").value="";
+  
+  var xhttp;
+  xhttp=new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      cFunction(this);
+    }
+    else {
+      document.getElementById("info").innerHTML="";
+    }
+  };
+  xhttp.open("GET", QuakeURL, true);
+  xhttp.send();
+}
+
+function getQuake(xhttp) {
+ if ( xhttp.responseText.indexOf("magnitude") < 1){
+      alert("Quake not found");;
+   }
+ else{
+    var myQuake= JSON.parse(xhttp.responseText);
+    var d = new Date();
+    var n = d.toISOString();
+    mag=myQuake.features[0].properties.magnitude;
+    document.getElementById("mag").value=mag;
+    document.getElementById("quakeTime").value=myQuake.features[0].properties.time;
+    d.setDate(myQuake.features[0].properties.time);
+    document.getElementById("startTime").value=n;
+
+    m1=Math.round(mag-0.5) ;
+    if (m1 >1) {
+	m2= Math.round(mag-0.5) - 1;
+    }
+    if (m1 > 2) {
+	m3=Math.round(mag-0.5) - 2;
+    }
+document.getElementById("M1").value=m1;
+document.getElementById("M2").value=m2;
+document.getElementById("M3").value=m3;
+document.getElementById("doAfters").disabled = false;
+
+  }
+}
+
+function doCalc() {
+mag=document.getElementById("mag").value;
+m1=document.getElementById("M1").value;
+m2=document.getElementById("M2").value;
+m3=document.getElementById("M3").value;
+
+if (m1>8||m2>=m1||m3>=m2){
+alert ("Magnitude ranges should be in ascending order (e.g. 5,4,3) and no larger than 8");
+return;
+}
+
+var qT= new Date(document.getElementById("quakeTime").value);
+var qS= new Date(document.getElementById("startTime").value);
+
+if(qT>qS){
+alert ("Start Time must be after Quake Time");
+return;
+}
+
+if(parseInt(document.getElementById("duration").value)<0){
+alert ("Duration must be 0-720");
+return;
+}
+
+if(mag>=10){
+alert ("Initial Quake MAG too large! Please enter a number<10");
+return;
+}
+
+document.getElementById("qID").innerHTML=document.getElementById("QuakeID").value;
+document.getElementById("Range1").innerHTML= "<strong>M" + m1.toString() +"+</strong>";
+document.getElementById("Range2").innerHTML= "<strong>M" + Math.round(m2).toString() + "-M" + m1.toString() +"</strong>";
+document.getElementById("Range3").innerHTML= "<strong>M" + Math.round(m3).toString() + "-M" + m2.toString() +"</strong>";
+
+
+a = parseFloat(document.getElementById("a").value);
+b = parseFloat(document.getElementById("b").value);
+c = parseFloat(document.getElementById("c").value);
+p = parseFloat(document.getElementById("p").value);
+
+var S = (qS.valueOf()-qT.valueOf())/ (1000 * 60 * 60 * 24); //days and parts there of between the start date and the quaketime
+var T = S + parseInt(document.getElementById("duration").value); //
+var fOmoriIntegral= (Math.pow((T+c),(1-p))-Math.pow((S+c),(1-p)))/(1-p);
+
+//document.getElementById("info").innerHTML= "fOmoriIntegral=" + fOmoriIntegral + " T=" + T + " c=" + c + " p=" + p;
+var vNabuNZ1 = Math.pow(10,(a+b*(mag-m1)))*fOmoriIntegral;
+var vNabuNZ2 = Math.pow(10,(a+b*(mag-m2)))*fOmoriIntegral;
+var  vNabuNZ3 = Math.pow(10,(a+b*(mag-m3)))*fOmoriIntegral;
+
+//Average number
+document.getElementById("within").innerHTML = "<strong>within " + document.getElementById("duration").value + " days</strong>";
+document.getElementById("M1R").innerHTML= vNabuNZ1.toFixed(2);
+var vDif =vNabuNZ2-vNabuNZ1;
+document.getElementById("M2R").innerHTML=vDif.toFixed(2) + "-" + vNabuNZ2.toFixed(2);
+vDif =vNabuNZ3-vNabuNZ2;
+document.getElementById("M3R").innerHTML=vDif.toFixed(2) + "-" + vNabuNZ3.toFixed(2);
+
+var p1=100*(1-Math.exp(-vNabuNZ1));
+var p2=100*(1-Math.exp(-(vNabuNZ2-vNabuNZ1)));
+var p3=100*(1-Math.exp(-(vNabuNZ3-vNabuNZ2)));
+
+//probabilities
+document.getElementById("M1P").innerHTML= p1.toFixed(3);
+document.getElementById("M2P").innerHTML= p2.toFixed(3);
+document.getElementById("M3P").innerHTML= p3.toFixed(3);
+
+var p1U=qpois_sue(0.975, vNabuNZ1);
+var p1L=qpois_sue(0.025, vNabuNZ1);
+var p2U=qpois_sue(0.975, vNabuNZ2-vNabuNZ1);
+var p2L=qpois_sue(0.025, vNabuNZ2-vNabuNZ1);
+var p3U=qpois_sue(0.975, vNabuNZ3-vNabuNZ2);
+var p3L=qpois_sue(0.025, vNabuNZ3-vNabuNZ2);
+
+
+//Range
+document.getElementById("M1A").innerHTML=p1L.toFixed(0) + "-" + p1U.toFixed(0)
+document.getElementById("M2A").innerHTML=p2L.toFixed(0) + "-" + p2U.toFixed(0);
+document.getElementById("M3A").innerHTML=p3L.toFixed(0) + "-" + p3U.toFixed(0);
+
+
+}
+
+
+function clearResults(zone){
+document.getElementById("Range1").innerHTML= "<strong>Mag range 1</strong>";
+document.getElementById("Range2").innerHTML= "<strong>Mag range 2</strong>";
+document.getElementById("Range3").innerHTML= "<strong>Mag range 3</strong>";
+document.getElementById("M1R").innerHTML= "";
+document.getElementById("M2R").innerHTML= "";
+document.getElementById("M3R").innerHTML= "";
+document.getElementById("M1A").innerHTML= "";
+document.getElementById("M2A").innerHTML= "";
+document.getElementById("M3A").innerHTML= "";
+document.getElementById("M1P").innerHTML= "";
+document.getElementById("M2P").innerHTML= "";
+document.getElementById("M3P").innerHTML= "";
+document.getElementById("info").innerHTML="";
+document.getElementById("qID").innerHTML="";
+document.getElementById("within").innerHTML="<strong>within nn days</strong>";
+
+if (zone=="1")
+	{
+	if (document.getElementById("nz").checked==true)
+		{
+		document.getElementById("b").value=1.03;
+		document.getElementById("a").value=-1.59;
+		document.getElementById("c").value=0.04;
+		document.getElementById("p").value=1.07;
+		document.getElementById("a").disabled=true;	
+		document.getElementById("b").disabled=true;	
+		document.getElementById("c").disabled=true;	
+		document.getElementById("p").disabled=true;	
+		}
+	if (document.getElementById("sz").checked==true)
+		{
+		document.getElementById("b").value=1.00;
+		document.getElementById("a").value=-1.97;
+		document.getElementById("c").value=0.018;
+		document.getElementById("p").value=0.92;
+		document.getElementById("a").disabled=true;	
+		document.getElementById("b").disabled=true;	
+		document.getElementById("c").disabled=true;	
+		document.getElementById("p").disabled=true;	
+
+		}	
+	if (document.getElementById("cm").checked==true)
+		{
+		document.getElementById("a").disabled=false;	
+		document.getElementById("b").disabled=false;	
+		document.getElementById("c").disabled=false;	
+		document.getElementById("p").disabled=false;	
+		}
+	}
+}
+
+
+// see https://www.lexifi.com/blog/quant/efficient-simulation-method-poisson-distribution/
+
+function qpois_sue(p,lambda) {
+var inc = Math.exp(-1*lambda);
+var n=0;
+var sum= inc;
+count=1000;
+
+//document.getElementById("info").innerHTML="p="+p+",lam="+lambda;
+
+while (sum < p && count>0)
+	{ 
+	n=n+1;
+	inc= inc*lambda/n;
+	sum= sum+inc;
+	count=count-1;	
+	}
+
+	return n;
+}
+
+</script>
+</body>
+</html>
