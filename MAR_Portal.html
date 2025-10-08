@@ -19,7 +19,7 @@
         return response.json();
       })
       .then(data => {
-        const fieldValue = data.fields.Preablebody['en-US'];
+        const fieldValue = data.fields.Comments['en-US'];
         document.getElementById('preview').innerHTML = `<p>${fieldValue}</p>`;
       })
       .catch(error => {
