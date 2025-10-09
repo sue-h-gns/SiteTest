@@ -1,30 +1,104 @@
-<script>
-  const spaceId = 'yc00yopxi6mr';
-  const environmentId = 'master';
-  const accessToken = 'MwkVAR_g_LN5gMdYoRCI4-qN3VtRfsRw28MOZWCywJA';
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MAR Portal</title>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<h1 id=eventName></h1>
+<section>
+	<article>
+		<table>
+			<tr style="text-align:center">
+				<td>NB. For EAT 2 onwards, new information in <data color=red>RED</data><br>
+					<data id=Pbody></data><br>
+					Conference Call Details (For NEMA DO):<br> 
+					0800 452 934 or 09 929 1816 (Conference code: 2156532262)<br> 
+					NOTE: These details are subject to change, please be prepared for future updates.</td>
 
-  const params = new URLSearchParams(window.location.search);
-  const entryId = params.get('id');
+			</tr>
+		</table>
+	</article>
+	<article>
+		<table>
+		<tr>
+			<td> Earthquake details</td>
+			<td colspan="3">
+				<p id=mag>XX</p>
+				<p>GeoNet Webpage link:<data id=GURL></data></p>
+			</td>
+		</tr>
+		<tr>
+			<td>Tsunami Threat:</td>
+			<td colspan="3"><data id=tThreat></data></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>Status of Threat Assessment:</td>
+			<td><data id=threatStatus></data></td>
+		</tr>
+		<tr>
+			<td colspan="3">Comment:
+			<data id=comments></data></td>
+		</tr>
+		</table
+	</article>
+	<article>
+		<p id=pBody></p>
+	</article>
+	<article>
+		<p id=textfile></p>
+	</article>
+	
+</section>
 
-  if (!entryId) {
-    document.getElementById('preview').innerHTML = `<p>No entry ID provided in URL.</p>`;
-  } else {
-    const url = `https://preview.contentful.com/spaces/${spaceId}/environments/${environmentId}/entries/${entryId}?access_token=${accessToken}`;
+  <script>
+    const spaceId = 'yc00yopxi6mr';
+    const environmentId = 'master';
+    const accessToken = 'MwkVAR_g_LN5gMdYoRCI4-qN3VtRfsRw28MOZWCywJA';
 
-    fetch(url)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        const fieldValue = data.fields.Comments['en-US'];
-        document.getElementById('preview').innerHTML = `<p>${fieldValue}</p>`;
-      })
-      .catch(error => {
-        console.error('Error fetching entry:', error);
-        document.getElementById('preview').innerHTML = `<p>Error loading preview.</p>`;
-      });
-  }
-</script>
+    const params = new URLSearchParams(window.location.search);
+    const entryId = params.get('id');
+
+    if (!entryId) {
+      document.getElementById('eventName').innerHTML = `<p>No entry ID provided in URL.</p>`;
+    } else {
+      const url = `https://preview.contentful.com/spaces/${spaceId}/environments/${environmentId}/entries/${entryId}?access_token=${accessToken}`;
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const comments = data.fields.comments; // ✅ no ['en-US'] needed
+          document.getElementById('comments').innerHTML = `${comments}`;
+          const GURL = data.fields.GURL; // ✅ no ['en-US'] needed
+          document.getElementById('GURL').innerHTML = `${GURL}`;
+          const eventName = data.fields.eventName; // ✅ no ['en-US'] needed
+          document.getElementById('eventName').innerHTML = `${eventName}`;
+          const mag = data.fields.mag; // ✅ no ['en-US'] needed
+          document.getElementById('mag').innerHTML = `Magnitude:${mag}`;
+          const tThreat = data.fields.tThreat; // ✅ no ['en-US'] needed
+          document.getElementById('tThreat').innerHTML = `${tThreat}`;
+          const threatStatus = data.fields.threatStatus; // ✅ no ['en-US'] needed
+          document.getElementById('threatStatus').innerHTML = `${threatStatus}`;
+          const Pbody = data.fields.Pbody; // ✅ no ['en-US'] needed
+          document.getElementById('Pbody').innerHTML = `${Pbody}`;
+
+        })
+        .catch(error => {
+          console.error('Error fetching entry:', error);
+          document.getElementById('eventName').innerHTML = `<p>Error loading preview.</p>`;
+        });
+    }
+  </script>
+</body>
+</html>
